@@ -34,6 +34,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <map>
 #include <regex>
 
 constexpr const char* templateChar = "$";
@@ -61,6 +62,38 @@ bool findFiles(const fs::path& dirPath, const std::string& matchString,
         }
     }
     return true;
+}
+
+bool findFiles(const std::vector<fs::path>&& dirPaths,
+               const std::string& matchString,
+               std::vector<fs::path>& foundPaths)
+{
+    std::map<fs::path, fs::path> paths;
+    std::regex search(matchString);
+    std::smatch match;
+    for (const auto& dirPath : dirPaths)
+    {
+        if (!fs::exists(dirPath))
+        {
+            continue;
+        }
+
+        for (const auto& p : fs::directory_iterator(dirPath))
+        {
+            std::string path = p.path().string();
+            if (std::regex_search(path, match, search))
+            {
+                paths[p.path().filename()] = p.path();
+            }
+        }
+    }
+
+    for (const auto& [key, value] : paths)
+    {
+        foundPaths.emplace_back(value);
+    }
+
+    return !foundPaths.empty();
 }
 
 bool getI2cDevicePaths(const fs::path& dirPath,
@@ -309,7 +342,7 @@ std::optional<std::string> templateCharReplace(
                     {
                         constant = std::stoi(*it);
                     }
-                    catch (std::invalid_argument&)
+                    catch (const std::invalid_argument&)
                     {
                         std::cerr << "Parameter not supported for templates "
                                   << *it << "\n";
@@ -373,9 +406,13 @@ std::optional<std::string> templateCharReplace(
             }
             keyPair.value() = result;
 
-            // We probably just invalidated the pointer above, so set it to null
-            strPtr = nullptr;
-            break;
+            // We probably just invalidated the pointer abovei,
+            // reset and continue to handle multiple templates
+            strPtr = keyPair.value().get_ptr<std::string*>();
+            if (strPtr == nullptr)
+            {
+                break;
+            }
         }
     }
 
@@ -397,9 +434,9 @@ std::optional<std::string> templateCharReplace(
                 keyPair.value() = static_cast<uint64_t>(temp);
             }
         }
-        catch (std::invalid_argument&)
+        catch (const std::invalid_argument&)
         {}
-        catch (std::out_of_range&)
+        catch (const std::out_of_range&)
         {}
     }
     // non-hex numbers
@@ -410,7 +447,7 @@ std::optional<std::string> templateCharReplace(
             uint64_t temp = boost::lexical_cast<uint64_t>(*strPtr);
             keyPair.value() = temp;
         }
-        catch (boost::bad_lexical_cast&)
+        catch (const boost::bad_lexical_cast&)
         {}
     }
     return ret;

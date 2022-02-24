@@ -62,6 +62,9 @@ const static constexpr char* property = "CurrentHostState";
 bool findFiles(const std::filesystem::path& dirPath,
                const std::string& matchString,
                std::vector<std::filesystem::path>& foundPaths);
+bool findFiles(const std::vector<std::filesystem::path>&& dirPaths,
+               const std::string& matchString,
+               std::vector<std::filesystem::path>& foundPaths);
 
 bool getI2cDevicePaths(
     const std::filesystem::path& dirPath,
@@ -77,16 +80,21 @@ struct DBusInternalError final : public sdbusplus::exception_t
     const char* name() const noexcept override
     {
         return "org.freedesktop.DBus.Error.Failed";
-    };
+    }
     const char* description() const noexcept override
     {
         return "internal error";
-    };
+    }
     const char* what() const noexcept override
     {
         return "org.freedesktop.DBus.Error.Failed: "
                "internal error";
-    };
+    }
+
+    int get_errno() const noexcept override
+    {
+        return EACCES;
+    }
 };
 
 inline bool fwVersionIsSame(void)

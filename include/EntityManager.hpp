@@ -27,6 +27,7 @@
 
 #include <iostream>
 #include <list>
+#include <optional>
 #include <string>
 
 // paths - > interfaces -> properties
@@ -39,6 +40,30 @@ using DBusProbeObjectT = boost::container::flat_map<
 // vector of tuple<map<propertyName, variant>, D-Bus path>>
 using FoundDeviceT = std::vector<std::tuple<
     boost::container::flat_map<std::string, BasicVariantType>, std::string>>;
+
+struct CmpStr
+{
+    bool operator()(const char* a, const char* b) const
+    {
+        return std::strcmp(a, b) < 0;
+    }
+};
+
+// underscore T for collison with dbus c api
+enum class probe_type_codes
+{
+    FALSE_T,
+    TRUE_T,
+    AND,
+    OR,
+    FOUND,
+    MATCH_ONE
+};
+
+using FoundProbeTypeT =
+    std::optional<boost::container::flat_map<const char*, probe_type_codes,
+                                             CmpStr>::const_iterator>;
+FoundProbeTypeT findProbeType(const std::string& probe);
 
 struct PerformScan : std::enable_shared_from_this<PerformScan>
 {
@@ -56,7 +81,6 @@ struct PerformScan : std::enable_shared_from_this<PerformScan>
     sdbusplus::asio::object_server& objServer;
     std::function<void()> _callback;
     bool _passed = false;
-    bool powerWasOn = isPowerOn();
     DBusProbeObjectT dbusProbeObjects;
     std::vector<std::string> passedProbes;
 };
@@ -86,9 +110,9 @@ inline void logDeviceAdded(const nlohmann::json& record)
     auto findAsset =
         record.find("xyz.openbmc_project.Inventory.Decorator.Asset");
 
-    std::string model = "Unkown";
+    std::string model = "Unknown";
     std::string type = "Unknown";
-    std::string sn = "Unkown";
+    std::string sn = "Unknown";
 
     if (findType != record.end())
     {
@@ -132,9 +156,9 @@ inline void logDeviceRemoved(const nlohmann::json& record)
     auto findAsset =
         record.find("xyz.openbmc_project.Inventory.Decorator.Asset");
 
-    std::string model = "Unkown";
+    std::string model = "Unknown";
     std::string type = "Unknown";
-    std::string sn = "Unkown";
+    std::string sn = "Unknown";
 
     if (findType != record.end())
     {

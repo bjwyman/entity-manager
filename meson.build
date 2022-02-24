@@ -4,10 +4,11 @@ project(
     default_options: [
         'warning_level=3',
         'werror=true',
-        'cpp_std=c++17'
+        'cpp_std=c++20'
     ],
     license: 'Apache-2.0',
     version: '0.1',
+    meson_version: '>=0.57.0',
 )
 add_project_arguments('-Wno-psabi', language: 'cpp')
 
@@ -59,6 +60,11 @@ packagedir = join_paths(
     get_option('datadir'),
     meson.project_name(),
 )
+sysconfdir = join_paths(
+    get_option('prefix'),
+    get_option('sysconfdir'),
+    meson.project_name(),
+)
 threads = dependency('threads')
 if cpp.has_header('valijson/validator.hpp')
     valijson = declare_dependency()
@@ -79,6 +85,8 @@ configs = [
     'A2UL16RISER.json',
     'A2UX8X4RISER.json',
     'ACBELL_RICA_PSU.json',
+    'ASRock_E3C246D4I.json',
+    'Bletchley.json',
     'Blyth.json',
     'AHW1UM2RISER.json',
     'ASPOWER_U1A-D10550_PSU.json',
@@ -88,6 +96,8 @@ configs = [
     'ASPOWER_U1D-D10800_PSU.json',
     'AXX1P100HSSI_AIC.json',
     'AXX2PRTHDHD.json',
+    'Bear Lake.json',
+    'Bear River.json',
     'BNP Baseboard.json',
     'Bellavista.json',
     'Delta DPS-750XB PSU.json',
@@ -100,16 +110,21 @@ configs = [
     'F2U8X25 HSBP.json',
     'FBTP.json',
     'FBYV2.json',
+    'Flett.json',
     'Flextronics S-1100ADU00-201 PSU.json',
     'IBM 1000W CFFPS.json',
     'IBM 1400W CFFPS.json',
     'IBM 1600W CFFPS.json',
     'IBM 2000W CFFPS.json',
     'IBM 2300W CFFPS.json',
+    'Ingraham.json',
     'Intel Front Panel.json',
+    'Kudo_BMC.json',
+    'Kudo_Motherboard.json',
     'Nisqually.json',
     'NVME P4000.json',
     'PCIE SSD Retimer.json',
+    'PM1735.json',
     'PSSF132202A.json',
     'PSSF162205A.json',
     'PSSF212201A.json',
@@ -124,6 +139,7 @@ configs = [
     'Storm King.json',
     'STP Baseboard.json',
     'STP P4000 Chassis.json',
+    'Tola.json',
     'Tyan_S7106_Baseboard.json',
     'WFT Baseboard.json',
 ]
@@ -147,6 +163,7 @@ schemas = [
     'Pid.json',
     'Pid.Zone.json',
     'Stepwise.json',
+    'VirtualSensor.json',
     'SupportedConfiguration.json',
 ]
 
